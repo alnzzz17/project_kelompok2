@@ -25,11 +25,11 @@ const Pasien = sequelize.define('pasien',{
     },
     email:{
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
     },
     phoneNumber:{
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
     },
     emergencyContact:{
         type: Sequelize.STRING,
@@ -57,7 +57,7 @@ const Pasien = sequelize.define('pasien',{
     },
     role: {
       type: Sequelize.STRING,
-      defaultValue: 'Pasien' // Tetapkan peran default
+      defaultValue: 'Pasien' //role default
     }
   });
   
@@ -85,11 +85,11 @@ const Pasien = sequelize.define('pasien',{
       },
       email:{
           type: Sequelize.STRING,
-          allowNull: false
+          allowNull: true
       },
       phoneNumber:{
           type: Sequelize.STRING,
-          allowNull: false
+          allowNull: true
       },
       gender:{
           type: Sequelize.STRING,
@@ -117,7 +117,7 @@ const Pasien = sequelize.define('pasien',{
       },
       role: {
         type: Sequelize.STRING,
-        defaultValue: 'Dokter' // Tetapkan peran default
+        defaultValue: 'Dokter' //role default
       }
   });
   
@@ -141,15 +141,15 @@ const Pasien = sequelize.define('pasien',{
       }, 
       email:{
           type: Sequelize.STRING,
-          allowNull: false
+          allowNull: true
       },
       phoneNumber:{
           type: Sequelize.STRING,
-          allowNull: false
+          allowNull: true
       },
       role: {
         type: Sequelize.STRING,
-        defaultValue: 'Resepsionis' // Tetapkan peran default
+        defaultValue: 'Resepsionis' //role default
       }
   });
   
