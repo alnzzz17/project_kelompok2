@@ -1,5 +1,6 @@
 const sequelize = require("../util/db_connect");
 const Sequelize = require('sequelize');
+const User = require("../model/User");
 
 const Appointment = sequelize.define('appointment',{
   idAppointment:{
@@ -8,26 +9,51 @@ const Appointment = sequelize.define('appointment',{
       allowNull: false,
       autoIncrement: true
   },
+    idPasien:{
+      type: Sequelize.STRING,
+      allowNull: true,
+      references: {
+        model: User.Pasien,
+        key: 'idPasien'
+      }
+  },
+  idDokter:{
+      type: Sequelize.STRING,
+      allowNull: true,
+      references: {
+        model: User.Dokter,
+        key: 'idDokter'
+      }
+  },
+  idResepsionis:{
+      type: Sequelize.STRING,
+      allowNull: true,
+      references: {
+        model: User.Resepsionis,
+        key: 'idRsp'
+      }
+  },
   dateTime:{
       type: Sequelize.DATE,
       allowNull: false,
       defaultValue: Sequelize.NOW
   },
   poli:{
-      type: Sequelize.STRING, //or ENUM("Gigi","Umum") or buat tabel baru???
-      allowNull: false
+      type: Sequelize.ENUM("Gigi","Umum"),
+      allowNull: true
   },
   queueNumber:{
       type: Sequelize.INTEGER,
-      allowNull: false
+      allowNull: false,
+      autoIncrement: true
   },
   keluhan:{
     type: Sequelize.TEXT,
-    allowNull: false
+    allowNull: true
   },
   diagnosis:{
       type: Sequelize.TEXT,
-      allowNull: false
+      allowNull: true
   },
   assuranceType:{
       type: Sequelize.STRING,
@@ -35,11 +61,12 @@ const Appointment = sequelize.define('appointment',{
   },
   appStatus:{
       type: Sequelize.ENUM("TERDAFTAR","SEDANG DIPERIKSA","SELESAI"),
-      allowNull: false
+      allowNull: false,
+      defaultValue: "TERDAFTAR"
   },
   bill:{
       type: Sequelize.INTEGER,
-      allowNull: false
+      allowNull: true
   },
   discount:{
       type: Sequelize.INTEGER,

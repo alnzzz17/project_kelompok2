@@ -61,7 +61,7 @@ const getUserById = async (req, res, next) => {
         });
         break;
       default:
-        throw new Error("Invalid role prefix");
+        throw new Error("User Invalid!");
     }
 
     if (!user) {
@@ -198,7 +198,7 @@ const postUser = async (req, res, next) => {
         });
         break;
       default:
-        const error = new Error(`Role ${role} is not supported!`);
+        const error = new Error(`Role Invalid!`);
         error.statusCode = 400;
         throw error;
     }
@@ -254,7 +254,7 @@ const loginHandler = async (req, res, next) => {
         break;
       default:
         //jika id tidak sesuai dengan format yang diharapkan
-        const error = new Error('Invalid User ID!');
+        const error = new Error('Invalid ID!');
         error.statusCode = 400;
         throw error;
     }
@@ -325,7 +325,7 @@ const deleteUser = async (req, res, next) => {
     const decoded = jwt.verify(token, key);
 
     if (decoded.role !== "ADMIN") {
-      const error = new Error("You don't have access!!!");
+      const error = new Error("You don't have access!");
       error.statusCode = 403; //forbidden
       throw error;
     }

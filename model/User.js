@@ -108,7 +108,7 @@ const Pasien = sequelize.define('pasien',{
           allowNull: false
       },
       poli:{
-          type: Sequelize.STRING,
+          type: Sequelize.ENUM("Gigi","Umum"),
           allowNull: false
       },
       profileDesc:{
@@ -118,6 +118,14 @@ const Pasien = sequelize.define('pasien',{
       role: {
         type: Sequelize.STRING,
         defaultValue: 'Dokter' //role default
+      },
+      idJadwal: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+        references: {
+            model: Jadwal,
+            key: 'idJadwal'
+        }
       }
   });
   
