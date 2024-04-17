@@ -1,27 +1,21 @@
 require("dotenv").config();
 const Appointment = require("../model/Appointment");
-const Pasien = require("../model/User");
+const { Resepsionis, Dokter, Pasien } = require("../model/User");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const key = process.env.TOKEN_SECRET_KEY;
-//const cloudinary = require("../util/cloudinary_config");
+const cloudinary = require("../util/cloudinary_config");
 const fs = require("fs");
-
-const getAllUser = async (req,res,next) => {
-
-}
 
 const getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
     let user;
 
-    //mengextract dua karakter pertama dari userId
     const rolePrefix = userId.substring(0, 2);
 
-    //menentukan model yang akan digunakan berdasarkan rolePrefix
     switch (rolePrefix) {
-      case '01': //Resepsionis
+      case '01':
         user = await Resepsionis.findOne({
           where: {
             idRsp: userId,
@@ -36,7 +30,7 @@ const getUserById = async (req, res, next) => {
           ]
         });
         break;
-      case '02': //Dokter
+      case '02':
         user = await Dokter.findOne({
           where: {
             idDokter: userId,
@@ -51,7 +45,7 @@ const getUserById = async (req, res, next) => {
           ]
         });
         break;
-      case '03': //Pasien
+      case '03':
         user = await Pasien.findOne({
           where: {
             idPasien: userId,
@@ -99,9 +93,8 @@ const getAllUserByRole = async (req, res, next) => {
     const { role } = req.params;
     let users;
 
-    // Menentukan model berdasarkan role yang diberikan
     switch (role) {
-      case '01': // Resepsionis
+      case '01':
         users = await Resepsionis.findAll({
           attributes: [
             "idRsp",
@@ -113,7 +106,7 @@ const getAllUserByRole = async (req, res, next) => {
           ]
         });
         break;
-      case '02': // Dokter
+      case '02':
         users = await Dokter.findAll({
           attributes: [
             "idDokter",
@@ -125,7 +118,7 @@ const getAllUserByRole = async (req, res, next) => {
           ]
         });
         break;
-      case '03': // Pasien
+      case '03':
         users = await Pasien.findAll({
           attributes: [
             "idPasien",
@@ -154,12 +147,13 @@ const getAllUserByRole = async (req, res, next) => {
   }
 };
 
-
 const postUser = async (req, res, next) => {
   try {
-    const { role, fullName, email, phoneNumber, password, idNumber, birthDate, gender, personalAddress, historyPenyakit, allergies, sipNumber, specialize, poli, profileDesc } = req.body;
+    const { role, fullName, email, phoneNumber,
+            password, idNumber, birthDate, gender, personalAddress,
+            historyPenyakit, allergies, sipNumber, specialize, poli,
+            profileDesc } = req.body;
 
-    //hash user password
     const hashedPassword = await bcrypt.hash(password, 5);
 
     let user;
@@ -209,33 +203,30 @@ const postUser = async (req, res, next) => {
         throw error;
     }
 
-    // const token = jwt.sign(
-    //   {
-    //     userId: user.id,
-    //     role: role,
-    //   },
-    //   key,
-    //   {
-    //     algorithm: "HS256",
-    //     expiresIn: "1h",
-    //   }
-    // );
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: role,
+      },
+      key,
+      {
+        algorithm: "HS256",
+        expiresIn: "1h",
+      }
+    );
 
-    //mengirim response
     res.status(201).json({
       status: "success",
       message: "Register Successful!",
       token,
     });
   } catch (error) {
-    //jika status code belum terdefined maka status = 500;
     res.status(error.statusCode || 500).json({
       status: "Error",
       message: error.message,
     });
   }
 };
-
 
 const loginHandler = async (req, res, next) => {
   try {
@@ -286,19 +277,19 @@ const loginHandler = async (req, res, next) => {
     }
 
     //buat token dengan menggunakan role
-    // const token = jwt.sign(
-    //   {
-    //     userId: currentUser.id, //diubah sesuai dengan kolom id yang benar pada masing2 model
-    //     role: role,
-    //   },
-    //   key,
-    //   {
-    //     algorithm: 'HS256',
-    //     expiresIn: '1h',
-    //   }
-    // );
+    const token = jwt.sign(
+      {
+        userId: currentUser.id, //diubah sesuai dengan kolom id yang benar pada masing2 model
+        role: role,
+      },
+      key,
+      {
+        algorithm: 'HS256',
+        expiresIn: '1h',
+      }
+    );
 
-    //kirim respons
+    //kirim response
     res.status(200).json({
       status: 'Success',
       message: 'Login Successful!',
@@ -482,6 +473,7 @@ const editUserAccount = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
     let token;
+
     if (authorization !== null && authorization.startsWith("Bearer ")) {
       token = authorization.substring(7);
     } else {
@@ -591,9 +583,7 @@ const editUserAccount = async (req, res, next) => {
   }
 };
 
-
 module.exports = {
-    getAllUser,
     getUserById,
     getAllUserByRole,
     postUser,

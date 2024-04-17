@@ -22,8 +22,8 @@ User.Dokter.belongsTo(Jadwal);
 const association = async()=>{
   try {
     await sequelize.sync({force: false});
-    // Division.bulkCreate(divisi_itc);
-    // await User.create(admin);
+    // Division.bulkCreate();
+    // await User.create();
   } catch (error) {
     console.log(error.message);
   }
