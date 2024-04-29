@@ -1,5 +1,5 @@
 const sequelize = require("./db_connect");
-const User = require('../model/User');
+const { Pasien, Dokter, Resepsionis } = require('../model/User'); // Import models
 const Jadwal = require('../model/Jadwal');
 const Appointment = require('../model/Appointment');
 
@@ -7,17 +7,17 @@ const Appointment = require('../model/Appointment');
 //User.hasMany(Role)
 //Role.belongsTo(User)
 
-User.Pasien.hasMany(Appointment);
-Appointment.belongsTo(User.Pasien);
+Pasien.hasMany(Appointment);
+Appointment.belongsTo(Pasien);
 
-User.Dokter.hasMany(Appointment);
-Appointment.belongsTo(User.Dokter);
+Dokter.hasMany(Appointment);
+Appointment.belongsTo(Dokter);
 
-User.Resepsionis.hasMany(Appointment);
-Appointment.belongsTo(User.Resepsionis);
+Resepsionis.hasMany(Appointment);
+Appointment.belongsTo(Resepsionis);
 
-Jadwal.hasOne(User.Dokter);
-User.Dokter.belongsTo(Jadwal);
+Jadwal.hasOne(Dokter);
+Dokter.belongsTo(Jadwal);
 
 const association = async()=>{
   try {
