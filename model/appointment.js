@@ -1,153 +1,77 @@
-require("dotenv").config();
-const Appointment = require("../model/Appointment");
-const { Resepsionis, Dokter, Pasien } = require("../model/User");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const key = process.env.TOKEN_SECRET_KEY;
-const fs = require("fs");
+const sequelize = require("../util/db_connect");
+const Sequelize = require('sequelize');
+const User = require("../model/User");
 
-const getAllAppoint = async (req, res, next) => {
-  try {
-    const appointments = await Appointment.findAll({
-      order: [["createdAt", "DESC"]],
-    });
-    res.status(200).json({
-      status: "Success",
-      message: "Successfully retrieved all appointments",
-      appointments,
-    });
-  } catch (error) {
-    next(error);
+const Appointment = sequelize.define('appointment',{
+  idAppointment:{
+      type: Sequelize.INTEGER,
+      primaryKey: true,
+      allowNull: false,
+      autoIncrement: true
+  },
+    idPasien:{
+      type: Sequelize.STRING,
+      allowNull: true,
+      references: {
+        model: User.Pasien,
+        key: 'idPasien'
+      }
+  },
+  idDokter:{
+      type: Sequelize.STRING,
+      allowNull: true,
+      references: {
+        model: User.Dokter,
+        key: 'idDokter'
+      }
+  },
+  idResepsionis:{
+      type: Sequelize.STRING,
+      allowNull: true,
+      references: {
+        model: User.Resepsionis,
+        key: 'idRsp'
+      }
+  },
+  dateTime:{
+      type: Sequelize.DATE,
+      allowNull: false,
+      defaultValue: Sequelize.NOW
+  },
+  poli:{
+      type: Sequelize.ENUM("Gigi","Umum"),
+      allowNull: true
+  },
+  queueNumber:{
+      type: Sequelize.INTEGER,
+      allowNull: false
+  },
+  keluhan:{
+    type: Sequelize.TEXT,
+    allowNull: true
+  },
+  diagnosis:{
+      type: Sequelize.TEXT,
+      allowNull: true
+  },
+  assuranceType:{
+      type: Sequelize.STRING,
+      allowNull: true
+  },
+  appStatus:{
+      type: Sequelize.ENUM("TERDAFTAR","SEDANG DIPERIKSA","SELESAI"),
+      allowNull: false,
+      defaultValue: "TERDAFTAR"
+  },
+  bill:{
+      type: Sequelize.INTEGER,
+      allowNull: true
+  },
+  discount:{
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0
   }
-}
+})
 
-const addAppoint = async (req, res, next) => {
-  try {
-    const newAppointment = await Appointment.create(req.body);
-    res.status(201).json({
-      status: "Success",
-      message: "Appointment added successfully",
-      appointment: newAppointment,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-const deleteAppoint = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    //memeriksa role
-    const userRole = req.user.role;
-    if (userRole !== "Admin" && userRole !== "Resepsionis") {
-      throw new Error("Access denied");
-    }
-
-    const deletedAppointment = await Appointment.destroy({
-      where: { idAppointment: id },
-    });
-    if (!deletedAppointment) {
-      throw new Error("Appointment not found");
-    }
-    res.status(200).json({
-      status: "Success",
-      message: "Appointment deleted successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-const editAppointDetail = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const [updated] = await Appointment.update(req.body, {
-      where: { idAppointment: id },
-    });
-    if (!updated) {
-      throw new Error("Appointment not found");
-    }
-    res.status(200).json({
-      status: "Success",
-      message: "Appointment details updated successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-const getAppointById = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const appointment = await Appointment.findByPk(id);
-    if (!appointment) {
-      throw new Error("Appointment not found");
-    }
-    res.status(200).json({
-      status: "Success",
-      message: "Appointment retrieved successfully",
-      appointment,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-const getAppointByPasien = async (req, res, next) => {
-  try {
-    const { idPasien } = req.params;
-    const appointments = await Appointment.findAll({
-      where: { idPasien },
-    });
-    res.status(200).json({
-      status: "Success",
-      message: "Appointments retrieved successfully",
-      appointments,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-const getAppointByDokter = async (req, res, next) => {
-  try {
-    const { idDokter } = req.params;
-    const appointments = await Appointment.findAll({
-      where: { idDokter },
-    });
-    res.status(200).json({
-      status: "Success",
-      message: "Appointments retrieved successfully",
-      appointments,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-const getAppointByPoli = async (req, res, next) => {
-  try {
-    const { poli } = req.query;
-    const appointments = await Appointment.findAll({
-      where: { poli },
-    });
-    res.status(200).json({
-      status: "Success",
-      message: "Appointments retrieved successfully",
-      appointments,
-    });
-  } catch (error) {
-    next(error);
-  }
-}
-
-module.exports = {
-  getAllAppoint,
-  addAppoint,
-  deleteAppoint,
-  editAppointDetail,
-  getAppointById,
-  getAppointByPasien,
-  getAppointByDokter,
-  getAppointByPoli,
-};
+module.exports = Appointment;
