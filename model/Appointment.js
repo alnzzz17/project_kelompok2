@@ -1,6 +1,6 @@
 const sequelize = require("../util/db_connect");
 const Sequelize = require('sequelize');
-const User = require("../model/User");
+const { Resepsionis, Dokter, Pasien } = require("../model/User");
 
 const Appointment = sequelize.define('appointment',{
   idAppointment:{
@@ -11,25 +11,25 @@ const Appointment = sequelize.define('appointment',{
   },
     idPasien:{
       type: Sequelize.STRING,
-      allowNull: true,
+      allowNull: false,
       references: {
-        model: User.Pasien,
+        model: Pasien,
         key: 'idPasien'
       }
   },
   idDokter:{
       type: Sequelize.STRING,
-      allowNull: true,
+      allowNull: false,
       references: {
-        model: User.Dokter,
+        model: Dokter,
         key: 'idDokter'
       }
   },
   idResepsionis:{
       type: Sequelize.STRING,
-      allowNull: true,
+      allowNull: false,
       references: {
-        model: User.Resepsionis,
+        model: Resepsionis,
         key: 'idRsp'
       }
   },
@@ -44,8 +44,7 @@ const Appointment = sequelize.define('appointment',{
   },
   queueNumber:{
       type: Sequelize.INTEGER,
-      allowNull: false,
-      autoIncrement: true
+      allowNull: false
   },
   keluhan:{
     type: Sequelize.TEXT,
