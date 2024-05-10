@@ -1,6 +1,5 @@
 const sequelize = require("../util/db_connect");
 const Sequelize = require('sequelize');
-const Jadwal = require("../model/Jadwal");
 
 const Pasien = sequelize.define('pasien',{
     idPasien:{
@@ -60,77 +59,73 @@ const Pasien = sequelize.define('pasien',{
       type: Sequelize.STRING,
       defaultValue: 'Pasien' //role default
     }
-  });
+});
   
-  const Dokter = sequelize.define('dokter',{
-      idDokter:{
-          type: Sequelize.STRING,
-          primaryKey: true,
-          allowNull: false
-      },
-      sipNumber:{
-          type: Sequelize.STRING,
-          allowNull: false
-      },
-      profilePict:{
-          type: Sequelize.TEXT,
-          allowNull: true
-      },
-      fullName:{
-          type: Sequelize.STRING,
-          allowNull: false
-      },
-      password:{
+const Dokter = sequelize.define('dokter',{
+    idDokter:{
+        type: Sequelize.STRING,
+        primaryKey: true,
+        allowNull: false
+    },
+    sipNumber:{
         type: Sequelize.STRING,
         allowNull: false
-      },
-      email:{
-          type: Sequelize.STRING,
-          allowNull: true
-      },
-      phoneNumber:{
-          type: Sequelize.STRING,
-          allowNull: true
-      },
-      gender:{
-          type: Sequelize.STRING,
-          allowNull: false
-      },
-      personalAddress:{
-          type: Sequelize.STRING,
-          allowNull: true
-      },
-      birthDate:{
-          type: Sequelize.DATEONLY,
-          allowNull: false
-      },
-      specialize:{
-          type: Sequelize.STRING,
-          allowNull: false
-      },
-      poli:{
-          type: Sequelize.ENUM("Gigi","Umum"),
-          allowNull: false
-      },
-      profileDesc:{
-          type: Sequelize.TEXT,
-          allowNull: true
-      },
-      role: {
+    },
+    profilePict:{
+        type: Sequelize.TEXT,
+        allowNull: true
+    },
+    fullName:{
         type: Sequelize.STRING,
-        defaultValue: 'Dokter' //role default
-      },
-      idJadwal: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-        references: {
-            model: Jadwal,
-            key: 'idJadwal'
-        }
-      }
-  });
+        allowNull: false
+    },
+    password:{
+      type: Sequelize.STRING,
+      allowNull: false
+    },
+    email:{
+        type: Sequelize.STRING,
+        allowNull: true
+    },
+    phoneNumber:{
+        type: Sequelize.STRING,
+        allowNull: true
+    },
+    gender:{
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    personalAddress:{
+        type: Sequelize.STRING,
+        allowNull: true
+    },
+    birthDate:{
+        type: Sequelize.DATEONLY,
+        allowNull: false
+    },
+    specialize:{
+        type: Sequelize.STRING,
+        allowNull: false
+    },
+    poli:{
+        type: Sequelize.ENUM("Gigi","Umum"),
+        allowNull: false
+    },
+    profileDesc:{
+        type: Sequelize.TEXT,
+        allowNull: true
+    },
+    role: {
+      type: Sequelize.STRING,
+      defaultValue: 'Dokter' //role default
+    },
+    schedule:{
+        type: Sequelize.JSON, //menyimpan jadwal sebagai JSON
+        allowNull: false
+    }
+});
   
-  const Resepsionis = sequelize.define('resepsionis',{
+const Resepsionis = sequelize.define('resepsionis',{
       idRsp:{
           type: Sequelize.STRING,
           primaryKey: true,
@@ -158,34 +153,9 @@ const Pasien = sequelize.define('pasien',{
       },
       role: {
         type: Sequelize.STRING,
+        type: Sequelize.ENUM("Resepsionis", "Admin"),
         defaultValue: 'Resepsionis' //role default
       }
-  });
-
-  const Admin = sequelize.define('admin',{
-    fullName:{
-        type: Sequelize.STRING,
-        allowNull: false
-    },
-    password:{
-        type: Sequelize.STRING,
-        allowNull: false
-    },
-    email:{
-        type: Sequelize.STRING,
-        allowNull: true
-    },
-    phoneNumber:{
-        type: Sequelize.STRING,
-        allowNull: true
-    },
-    role: {
-      type: Sequelize.STRING,
-      defaultValue: 'Admin' //role default
-    }
 });
   
-module.exports = Resepsionis;
-module.exports = Dokter;
-module.exports = Pasien;
-module.exports = Admin;
+module.exports = { Resepsionis, Dokter, Pasien };

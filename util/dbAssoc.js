@@ -1,29 +1,24 @@
 const sequelize = require("./db_connect");
-const { Pasien, Dokter, Resepsionis } = require('../model/User'); // Import models
-const Jadwal = require('../model/Jadwal');
+const { Resepsionis, Dokter, Pasien } = require('../model/User'); // Import models
+
 const Appointment = require('../model/Appointment');
 
-//SEMISAL ADA TABEL ROLES
-//User.hasMany(Role)
-//Role.belongsTo(User)
+Pasien.hasMany(Appointment, { foreignKey: 'idPasien' });
+Appointment.belongsTo(Pasien, { foreignKey: 'idPasien' });
 
-Pasien.hasMany(Appointment);
-Appointment.belongsTo(Pasien);
+Dokter.hasMany(Appointment, { foreignKey: 'idDokter' });
+Appointment.belongsTo(Dokter, { foreignKey: 'idDokter' });
 
-Dokter.hasMany(Appointment);
-Appointment.belongsTo(Dokter);
-
-Resepsionis.hasMany(Appointment);
-Appointment.belongsTo(Resepsionis);
-
-Jadwal.hasOne(Dokter);
-Dokter.belongsTo(Jadwal);
+Resepsionis.hasMany(Appointment, { foreignKey: 'idResepsionis' });
+Appointment.belongsTo(Resepsionis, { foreignKey: 'idResepsionis' });
 
 const association = async()=>{
   try {
-    await sequelize.sync({force: false});
-    // Division.bulkCreate();
-    // await User.create();
+    await sequelize.sync({force: true});
+    Dokter.bulkCreate();
+    await Pasien.create();
+    await Resepsionis.create();
+    await Appointment.create();
   } catch (error) {
     console.log(error.message);
   }

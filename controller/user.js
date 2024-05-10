@@ -21,6 +21,7 @@ const getUserById = async (req, res, next) => {
           },
           attributes: [
             "idRsp",
+            "username",
             "fullName",
             "email",
             "phoneNumber",
@@ -36,12 +37,15 @@ const getUserById = async (req, res, next) => {
           },
           attributes: [
             "idDokter",
+            "sipNumber",
             "fullName",
-            "email",
-            "phoneNumber",
             "profilePict",
+            "specialize",
+            "profileDesc",
+            "schedule",
             "role"
-          ]
+          ],
+          include: [{ model: Jadwal }]
         });
         break;
       case '03':
@@ -109,10 +113,12 @@ const getAllUserByRole = async (req, res, next) => {
         users = await Dokter.findAll({
           attributes: [
             "idDokter",
+            "sipNumber",
             "fullName",
-            "email",
-            "phoneNumber",
             "profilePict",
+            "specialize",
+            "profileDesc",
+            "schedule",
             "role"
           ]
         });
@@ -148,7 +154,7 @@ const getAllUserByRole = async (req, res, next) => {
 
 const postUser = async (req, res, next) => {
   try {
-    const { role, fullName, email, phoneNumber,
+    const { role, idPasien, idDokter, idRsp, userName, fullName, email, phoneNumber,
             password, idNumber, birthDate, gender, personalAddress,
             historyPenyakit, allergies, sipNumber, specialize, poli,
             profileDesc } = req.body;
@@ -160,7 +166,8 @@ const postUser = async (req, res, next) => {
     switch(role) {
       case 'Pasien':
         user = await Pasien.create({
-          idPasien: idNumber,
+          idPasien,
+          idNumber,
           fullName,
           password: hashedPassword,
           email,
@@ -174,7 +181,8 @@ const postUser = async (req, res, next) => {
         break;
       case 'Dokter':
         user = await Dokter.create({
-          idDokter: sipNumber,
+          idDokter,
+          sipNumber,
           fullName,
           password: hashedPassword,
           email,
@@ -189,7 +197,8 @@ const postUser = async (req, res, next) => {
         break;
       case 'Resepsionis':
         user = await Resepsionis.create({
-          userName: idNumber,
+          idRsp,
+          userName,
           fullName,
           password: hashedPassword,
           email,
@@ -416,17 +425,14 @@ const getUserByToken = async (req, res, next) => {
     } else if (decoded.role === 'Dokter') {
       user = await Dokter.findOne({
         attributes: [
-          "idDokter",
-          "fullName",
-          "sipNumber",
-          "birthDate",
-          "gender",
-          "profilePict",
-          "personalAddress",
-          "specialize",
-          "poli",
-          "profileDesc",
-          "role"
+            "idDokter",
+            "sipNumber",
+            "fullName",
+            "profilePict",
+            "specialize",
+            "profileDesc",
+            "idJadwal",
+            "role"
         ],
         where: {
           idDokter: decoded.userId,
@@ -515,7 +521,8 @@ const editUserAccount = async (req, res, next) => {
         gender: req.body.gender,
         personalAddress: req.body.personalAddress,
         historyPenyakit: req.body.historyPenyakit,
-        allergies: req.body.allergies
+        allergies: req.body.allergies,
+        password: req.body.password
       });
     } else if (decoded.role === 'Dokter') {
       currentUser = await Dokter.findByPk(decoded.userId);
@@ -542,7 +549,9 @@ const editUserAccount = async (req, res, next) => {
         email: req.body.email,
         phoneNumber: req.body.phoneNumber,
         gender: req.body.gender,
-        personalAddress: req.body.personalAddress
+        personalAddress: req.body.personalAddress,
+        password: req.body.password,
+        schedule: req.body.schedule
       });
     } else if (decoded.role === 'Resepsionis') {
       currentUser = await Resepsionis.findByPk(decoded.userId);
@@ -554,7 +563,8 @@ const editUserAccount = async (req, res, next) => {
       await currentUser.update({
         fullName: req.body.fullName,
         email: req.body.email,
-        phoneNumber: req.body.phoneNumber
+        phoneNumber: req.body.phoneNumber,
+        password: req.body.password
       });
     } else {
       const error = new Error("Invalid role");
