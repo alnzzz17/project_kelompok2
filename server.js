@@ -3,6 +3,7 @@ const app = express();
 
 // Import the user router
 const userRouter = require("./routes/user");
+// const appointmentRouter = require("./routes/appointment"); (uncomment kalau mau testing)
 
 // Middleware to parse JSON
 app.use(express.json());
