@@ -1,5 +1,5 @@
 const sequelize = require("./db_connect");
-const { Resepsionis, Dokter, Pasien } = require('../model/User'); // Import models
+const { Resepsionis, Dokter, Pasien } = require('../model/User'); //Import models
 
 const Appointment = require('../model/Appointment');
 
@@ -14,11 +14,11 @@ Appointment.belongsTo(Resepsionis, { foreignKey: 'idResepsionis' });
 
 const association = async()=>{
   try {
-    await sequelize.sync({force: true});
-    Dokter.bulkCreate();
-    await Pasien.create();
-    await Resepsionis.create();
-    await Appointment.create();
+    await sequelize.sync({force: false});
+    // Dokter.bulkCreate();
+    // await Pasien.create();
+    // await Resepsionis.create();
+    // await Appointment.create();
   } catch (error) {
     console.log(error.message);
   }

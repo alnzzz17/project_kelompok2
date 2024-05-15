@@ -152,6 +152,53 @@ const getAllUserByRole = async (req, res, next) => {
   }
 };
 
+const postTryRsp = async (req, res, next) => {
+  try {
+    const { idRsp, userName, fullName, password, email, phoneNumber } = req.body;
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 5);
+
+    // Insert data into the User table
+    const currentUser = await Resepsionis.create({
+      idRsp,
+      userName,
+      fullName,
+      password: hashedPassword,
+      email,
+      phoneNumber,
+      role: "Resepsionis"
+    });
+
+    // Generate a JWT token
+    const token = jwt.sign(
+      {
+        userId: currentUser.id,
+        role: currentUser.role,
+      },
+      key, // Replace with your JWT secret key
+      {
+        algorithm: "HS256",
+        expiresIn: "1h",
+      }
+    );
+
+    // Send response
+    res.status(201).json({
+      status: "success",
+      message: "Register Successful!",
+      token,
+    });
+  } catch (error) {
+    // If status code is not defined, set status = 500
+    res.status(error.statusCode || 500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+
 const postUser = async (req, res, next) => {
   try {
     const { role, idPasien, idDokter, idRsp, userName, fullName, email, phoneNumber,
@@ -203,6 +250,7 @@ const postUser = async (req, res, next) => {
           password: hashedPassword,
           email,
           phoneNumber,
+          role: "Resepsionis"
         });
         break;
       default:
@@ -595,6 +643,7 @@ const editUserAccount = async (req, res, next) => {
 module.exports = {
     getUserById,
     getAllUserByRole,
+    postTryRsp,
     postUser,
     deleteUser,
     loginHandler,
