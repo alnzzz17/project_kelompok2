@@ -2,15 +2,15 @@
 
 ## PRIO
 
-#### addResepsionis di postUser (Resepsionis)
+#### addAdmin di postUser (Resepsionis)
 ```
 {
-  "idRsp": "0104",
-  "userName": "rspLuffy",
-  "fullName": "Monkey D. Luffy",
-  "password": "kaizokuou",
-  "email": "luffy@gmail.com",
-  "phoneNumber": "08964534567"
+    idRsp : '0101',
+    userName : 'adm_prtm',
+    fullName : 'Admin Pratama',
+    password: 'adminpratama0710',
+    email : 'adminpratama@gmail.com',
+    phoneNumber : '089537378965',
 }
 ```
 *nantinya default role Resepsionis, diganti manual di db
