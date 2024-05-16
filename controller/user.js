@@ -284,58 +284,57 @@ const postUser = async (req, res, next) => {
   }
 };
 
+//login user (DONE)
 const loginHandler = async (req, res, next) => {
   try {
     //ambil data dari req body
     const { id, password } = req.body;
+    console.log(id, password);
 
-    //cari user sesuai dengan id yang diberikan
-    let currentUser;
+    let currentuser;
     let role;
 
-    //identifikasi role dari dua karakter pertama dalam id
+    //mengidentifikasi role dari dua karakter pertama id
     const roleId = id.slice(0, 2);
     switch (roleId) {
       case '01':
-        currentUser = await Resepsionis.findOne({ where: { idRsp: id } });
-        role = 'resepsionis';
+        currentuser = await Resepsionis.findOne({ where: { idRsp: id } });
+        role = 'Resepsionis';
         break;
       case '02':
-        currentUser = await Dokter.findOne({ where: { idDokter: id } });
-        role = 'dokter';
+        currentuser = await Dokter.findOne({ where: { idDokter: id } });
+        role = 'Dokter';
         break;
       case '03':
-        currentUser = await Pasien.findOne({ where: { idPasien: id } });
-        role = 'pasien';
+        currentuser = await Pasien.findOne({ where: { idPasien: id } });
+        role = 'Pasien';
         break;
       default:
-        //jika id tidak sesuai dengan format yang diharapkan
+        //jika format id tidak cocok
         const error = new Error('Invalid ID!');
         error.statusCode = 400;
         throw error;
     }
 
-    //user tidak ditemukan
-    if (!currentUser) {
-      const error = new Error('User Not Found!');
+    if (currentuser == undefined) {
+      const error = new Error("User Not Found!");
       error.statusCode = 400;
       throw error;
     }
 
-    //periksa apakah password sesuai
-    const isPasswordMatch = (password === currentUser.password);
+    const checkPassword = await bcrypt.compare(password, currentuser.password);
 
-    //jika password salah
-    if (!isPasswordMatch) {
-      const error = new Error('Wrong Password!');
+    //apabila password salah / tidak match
+    if (checkPassword === false) {
+      const error = new Error("wrong email or password");
       error.statusCode = 400;
       throw error;
     }
 
-    //buat token dengan menggunakan role
+    //membuat token berdasarkan role
     const token = jwt.sign(
       {
-        userId: currentUser.id, //diubah sesuai dengan kolom id yang benar pada masing2 model
+        userId: currentuser.idRsp || currentuser.idDokter || currentuser.idPasien, //identifier berdasarkan role
         role: role,
       },
       key,
