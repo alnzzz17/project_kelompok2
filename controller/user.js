@@ -284,12 +284,14 @@ const postUser = async (req, res, next) => {
   }
 };
 
-//login user (DONE)
+//login (DONE - TESTED)
 const loginHandler = async (req, res, next) => {
   try {
     //ambil data dari req body
-    const { id, password } = req.body;
-    console.log(id, password);
+    const {
+      id,
+      password
+    } = req.body;
 
     let currentuser;
     let role;
@@ -297,16 +299,36 @@ const loginHandler = async (req, res, next) => {
     //mengidentifikasi role dari dua karakter pertama id
     const roleId = id.slice(0, 2);
     switch (roleId) {
+      case '00':
+        currentuser = await Resepsionis.findOne({
+          where: {
+            idRsp: id
+          }
+        });
+        role = 'Admin';
+        break;
       case '01':
-        currentuser = await Resepsionis.findOne({ where: { idRsp: id } });
+        currentuser = await Resepsionis.findOne({
+          where: {
+            idRsp: id
+          }
+        });
         role = 'Resepsionis';
         break;
       case '02':
-        currentuser = await Dokter.findOne({ where: { idDokter: id } });
+        currentuser = await Dokter.findOne({
+          where: {
+            idDokter: id
+          }
+        });
         role = 'Dokter';
         break;
       case '03':
-        currentuser = await Pasien.findOne({ where: { idPasien: id } });
+        currentuser = await Pasien.findOne({
+          where: {
+            idPasien: id
+          }
+        });
         role = 'Pasien';
         break;
       default:
@@ -326,19 +348,17 @@ const loginHandler = async (req, res, next) => {
 
     //apabila password salah / tidak match
     if (checkPassword === false) {
-      const error = new Error("wrong email or password");
+      const error = new Error("Wrong email or password");
       error.statusCode = 400;
       throw error;
     }
 
     //membuat token berdasarkan role
-    const token = jwt.sign(
-      {
+    const token = jwt.sign({
         userId: currentuser.idRsp || currentuser.idDokter || currentuser.idPasien, //identifier berdasarkan role
         role: role,
       },
-      key,
-      {
+      key, {
         algorithm: 'HS256',
         expiresIn: '1h',
       }
