@@ -284,7 +284,7 @@ const postUser = async (req, res, next) => {
   }
 };
 
-//login (DONE - TESTED)
+// Login (DONE - TESTED) <Subject to Change>
 const loginHandler = async (req, res, next) => {
   try {
     //ambil data dari req body
@@ -380,6 +380,7 @@ const loginHandler = async (req, res, next) => {
   }
 };
 
+// Delete User (DONE - TESTED)
 const deleteUser = async (req, res, next) => {
   //hanya admin yang bisa menghapus
   try {
@@ -399,32 +400,36 @@ const deleteUser = async (req, res, next) => {
     //extract payload untuk mendapatkan userId dan role
     const decoded = jwt.verify(token, key);
 
-    if (decoded.role !== "ADMIN") {
+    if (decoded.role !== "Admin") {
       const error = new Error("You don't have access!");
       error.statusCode = 403; //forbidden
       throw error;
     }
 
     //2. menghapus user berdasarkan role
-    const { userId } = req.params;
+    const {
+      userId
+    } = req.params;
     let deletedUser;
 
-    switch (decoded.role) {
-      case 'Pasien':
+    const roleId = userId.slice(0, 2);
+
+    switch (roleId) {
+      case '03':
         deletedUser = await Pasien.destroy({
           where: {
             idPasien: userId,
           },
         });
         break;
-      case 'Dokter':
+      case '02':
         deletedUser = await Dokter.destroy({
           where: {
             idDokter: userId,
           },
         });
         break;
-      case 'Resepsionis':
+      case '01':
         deletedUser = await Resepsionis.destroy({
           where: {
             idRsp: userId,
