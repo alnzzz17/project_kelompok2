@@ -22,7 +22,7 @@ router.post("/appointments/add-new", addAppoint);
 router.delete("/appointments/:appId", deleteAppoint);
 
 //EDIT APPOINTMENT DETAILS
-router.put("/appointments/edit", editAppointDetail);
+router.put("/appointments/edit/:appId", editAppointDetail);
 
 //GET APPOINTMENT BY ID
 router.get("/appointments/:appId", getAppointById);
