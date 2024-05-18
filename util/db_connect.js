@@ -12,6 +12,18 @@ const db_name = "kelompok2"
 const sequelize = new Sequelize(db_name, db_username, db_password, {
   host: db_host,
   dialect: 'mysql',
+  //setting the timezone
+  dialectOptions: {
+    useUTC: false, //for reading from database
+    dateStrings: true,
+    typeCast: function (field, next) { //for reading from database
+      if (field.type === 'DATETIME') {
+        return field.string()
+      }
+        return next()
+      },
+  },
+  timezone: '+07:00'
 });
 
 module.exports = sequelize
