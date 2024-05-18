@@ -63,13 +63,19 @@ const Appointment = sequelize.define('appointment',{
       allowNull: false,
       defaultValue: "TERDAFTAR"
   },
-  bill:{
+  total:{
       type: Sequelize.INTEGER,
-      allowNull: true
+      allowNull: false,
+      defaultValue: 0
   },
   discount:{
       type: Sequelize.INTEGER,
       allowNull: false,
+      defaultValue: 0
+  },
+  bill:{
+      type: Sequelize.INTEGER,
+      allowNull: true,
       defaultValue: 0
   }
 })
