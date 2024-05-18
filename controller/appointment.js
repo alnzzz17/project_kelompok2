@@ -20,16 +20,42 @@ const getAllAppoint = async (req, res, next) => {
   }
 }
 
+//ADD NEW APPOINTMENT (DONE - TESTED)
 const addAppoint = async (req, res, next) => {
   try {
-    const newAppointment = await Appointment.create(req.body);
+    //ambil data dari req body
+    const {
+      idPasien,
+      idDokter,
+      idResepsionis,
+      dateTime,
+      poli,
+      queueNumber,
+      assuranceType
+    } = req.body;
+
+    //insert data ke tabel appointment
+    const newAppointment = await Appointment.create({
+      idPasien,
+      idDokter,
+      idResepsionis,
+      dateTime,
+      poli,
+      queueNumber,
+      assuranceType
+    });
+
+    //kirim response jika berhasil
     res.status(201).json({
       status: "Success",
-      message: "Appointment added successfully",
-      appointment: newAppointment,
+      message: "Appointment added successfully"
     });
   } catch (error) {
-    next(error);
+    //error handling
+    res.status(error.statusCode || 500).json({
+      status: "Error",
+      message: error.message,
+    });
   }
 }
 
