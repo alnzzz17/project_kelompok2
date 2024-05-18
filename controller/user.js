@@ -284,7 +284,7 @@ const postUser = async (req, res, next) => {
   }
 };
 
-// Login (DONE - TESTED) <Subject to Change>
+//LOGIN (DONE - TESTED)
 const loginHandler = async (req, res, next) => {
   try {
     //ambil data dari req body
@@ -294,7 +294,6 @@ const loginHandler = async (req, res, next) => {
     } = req.body;
 
     let currentuser;
-    let role;
 
     //mengidentifikasi role dari dua karakter pertama id
     const roleId = id.slice(0, 2);
@@ -305,7 +304,6 @@ const loginHandler = async (req, res, next) => {
             idRsp: id
           }
         });
-        role = 'Admin';
         break;
       case '01':
         currentuser = await Resepsionis.findOne({
@@ -313,7 +311,6 @@ const loginHandler = async (req, res, next) => {
             idRsp: id
           }
         });
-        role = 'Resepsionis';
         break;
       case '02':
         currentuser = await Dokter.findOne({
@@ -321,7 +318,6 @@ const loginHandler = async (req, res, next) => {
             idDokter: id
           }
         });
-        role = 'Dokter';
         break;
       case '03':
         currentuser = await Pasien.findOne({
@@ -329,7 +325,6 @@ const loginHandler = async (req, res, next) => {
             idPasien: id
           }
         });
-        role = 'Pasien';
         break;
       default:
         //jika format id tidak cocok
@@ -356,7 +351,7 @@ const loginHandler = async (req, res, next) => {
     //membuat token berdasarkan role
     const token = jwt.sign({
         userId: currentuser.idRsp || currentuser.idDokter || currentuser.idPasien, //identifier berdasarkan role
-        role: role,
+        role: currentuser.role,
       },
       key, {
         algorithm: 'HS256',
@@ -368,8 +363,7 @@ const loginHandler = async (req, res, next) => {
     res.status(200).json({
       status: 'Success',
       message: 'Login Successful!',
-      token: token,
-      role: role,
+      token: token
     });
   } catch (error) {
     //error handling
@@ -380,7 +374,7 @@ const loginHandler = async (req, res, next) => {
   }
 };
 
-// Delete User (DONE - TESTED)
+//DELETE USER ACCOUNT (DONE - TESTED)
 const deleteUser = async (req, res, next) => {
   //hanya admin yang bisa menghapus
   try {
@@ -546,6 +540,7 @@ const getUserByToken = async (req, res, next) => {
   }
 };
 
+//EDIT USER ACCOUNT (DONE - TESTED)
 const editUserAccount = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
@@ -632,7 +627,19 @@ const editUserAccount = async (req, res, next) => {
         error.statusCode = 400;
         throw error;
       }
+      const file = req.file;
+      if (file) {
+        const uploadOption = {
+          folder: "Profile_Member/",
+          public_id: `user_${currentUser.id}`,
+          overwrite: true,
+        };
+        const uploadFile = await cloudinary.uploader.upload(file.path, uploadOption);
+        imageUrl = uploadFile.secure_url;
+        fs.unlinkSync(file.path);
+      }
       await currentUser.update({
+        profilePict: imageUrl || currentUser.profilePict,
         fullName: req.body.fullName,
         email: req.body.email,
         phoneNumber: req.body.phoneNumber,
@@ -665,12 +672,13 @@ const editUserAccount = async (req, res, next) => {
 };
 
 module.exports = {
-    getUserById,
-    getAllUserByRole,
-    postTryRsp,
-    postUser,
-    deleteUser,
-    loginHandler,
-    getUserByToken,
-    editUserAccount
-  };
+  getUserById,
+  getAllUserByRole,
+  postRsp,
+  postPasien,
+  postDokter,
+  deleteUser,
+  loginHandler,
+  getUserByToken,
+  editUserAccount
+};
