@@ -43,7 +43,7 @@ const Appointment = sequelize.define('appointment',{
       allowNull: true
   },
   queueNumber:{
-      type: Sequelize.INTEGER,
+      type: Sequelize.STRING,
       allowNull: false
   },
   keluhan:{
