@@ -5,8 +5,9 @@ const upload = require("../middleware/upload_file");
 const {
     getUserById,
     getAllUserByRole,
-    postTryRsp,
-    postUser,
+    postRsp,
+    postPasien,
+    postDokter,
     deleteUser,
     loginHandler,
     getUserByToken,
@@ -14,15 +15,21 @@ const {
 } = require("../controller/user");
 
 //GET USER BY ID
-router.get("/users/fetch-all", getUserById);
+router.get("/users/:userId", getUserById);
 
 //GET USER BY ROLE
 router.get("/users/:userRole", getAllUserByRole);
 
-//Register new User
-router.post("/users/register", postTryRsp);
+//REGISTER NEW RESEPSIONIS
+router.post("/users/register/resepsionis", postRsp);
 
-//Login user
+//REGISTER NEW PASIEN
+router.post("/users/register/pasien", postPasien);
+
+//REGISTER NEW DOKTER
+router.post("/users/register/dokter", postDokter);
+
+//USER LOGIN
 router.post("/users/login", loginHandler);
 
 //DELETE /users/:userId
