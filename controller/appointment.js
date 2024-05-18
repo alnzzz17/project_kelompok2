@@ -83,21 +83,59 @@ const deleteAppoint = async (req, res, next) => {
   }
 }
 
+//EDIT APPOINTMENT DETAILS (DONE - TESTED)
 const editAppointDetail = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const [updated] = await Appointment.update(req.body, {
-      where: { idAppointment: id },
+
+    //ambil data dari parameter
+    const { appId } = req.params;
+
+    let currentRow;
+
+    //cari data appointment dari tabel
+    currentRow = await Appointment.findByPk(appId);
+      if (!currentRow) {
+        const error = new Error(`Appointment with id ${appId} does not exist`);
+        error.statusCode = 400;
+        throw error;
+      }
+
+    //update data
+    const updateApp = await Appointment.update(
+    {
+      idPasien: req.body.idPasien,
+      idDokter: req.body.idDokter,
+      idResepsionis: req.body.idResepsionis,
+      dateTime: req.body.dateTime,
+      poli: req.body.poli,
+      queueNumber: req.body.queueNumber,
+      keluhan: req.body.keluhan,
+      diagnosis: req.body.diagnosis,
+      assuranceType: req.body.assuranceType,
+      appStatus: req.body.appStatus,
+      total: req.body.total,
+      discount: req.body.discount,
+      bill: req.body.bill
+    },
+    {
+      where: { idAppointment: appId } //berdasarkan id dari parameter
     });
-    if (!updated) {
+
+    //jika tidak ditemukan
+    if (!updateApp) {
       throw new Error("Appointment not found");
     }
+    
+    //response jika berhasil di update
     res.status(200).json({
       status: "Success",
       message: "Appointment details updated successfully",
     });
   } catch (error) {
-    next(error);
+    res.status(error.statusCode || 500).json({
+      status: "Error",
+      message: error.message,
+    });
   }
 }
 
