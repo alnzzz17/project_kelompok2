@@ -1,18 +1,20 @@
 const express = require('express');
 const app = express();
 
-// Import the user router
+//import router user
 const userRouter = require("./routes/user");
-// const appointmentRouter = require("./routes/appointment"); (uncomment kalau mau testing)
+const appRouter = require("./routes/appointment");
 
-// Middleware to parse JSON
+//middleware untuk parse JSON
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Use the user router
+//router user
 app.use(userRouter);
+//router appointment
+app.use(appRouter);
 
-// CORS configuration
+//konfigurasi CORS
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE, PATCH");
@@ -20,7 +22,7 @@ app.use(function (req, res, next) {
   next();
 });
 
-// Default route
+//default route
 app.get("/", (req, res, next) => {
   try {
     res.json({
@@ -31,7 +33,7 @@ app.get("/", (req, res, next) => {
   }
 });
 
-const association = require('./util/dbAssoc'); // Assuming this sets up database associations
+const association = require('./util/dbAssoc'); //dbAssoc.js
 
 association()
   .then(() => {
