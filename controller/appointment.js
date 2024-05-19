@@ -20,9 +20,30 @@ const getAllAppoint = async (req, res, next) => {
   }
 }
 
-//ADD NEW APPOINTMENT (DONE - TESTED)
+//ADD NEW APPOINTMENT (DONE - NOT TESTED YET)
 const addAppoint = async (req, res, next) => {
+  //hanya role Admin dan Resepsionis yang dapat menambah Appointment 
   try {
+    const header = req.headers;
+    const authorization = header.authorization;
+    let token;
+
+    if (authorization !== undefined && authorization.startsWith("Bearer ")) {
+      token = authorization.substring(7);
+    } else {
+      const error = new Error("You need to login");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    //extract payload untuk mendapatkan userId dan role
+    const decoded = jwt.verify(token, key);
+
+    if (decoded.role !== "Admin" && decoded.role !== "Resepsionis") {
+      const error = new Error("You don't have access!");
+      error.statusCode = 403; //forbidden
+      throw error;
+    }
     //ambil data dari req body
     const {
       idPasien,
