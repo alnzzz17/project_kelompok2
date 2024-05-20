@@ -20,10 +20,11 @@ const getAllAppoint = async (req, res, next) => {
   }
 }
 
-//ADD NEW APPOINTMENT (DONE - NOT TESTED YET)
+//ADD NEW APPOINTMENT (DONE - TESTED)
 const addAppoint = async (req, res, next) => {
-  //hanya role Admin dan Resepsionis yang dapat menambah Appointment 
+  //hanya admin dan resepsionis yang bisa menambahkan appointment
   try {
+    //mengambil token
     const header = req.headers;
     const authorization = header.authorization;
     let token;
@@ -39,11 +40,12 @@ const addAppoint = async (req, res, next) => {
     //extract payload untuk mendapatkan userId dan role
     const decoded = jwt.verify(token, key);
 
-    if (decoded.role !== "Admin" && decoded.role !== "Resepsionis") {
+    if (decoded.role !== 'Resepsionis' && decoded.role !== 'Admin') {
       const error = new Error("You don't have access!");
       error.statusCode = 403; //forbidden
       throw error;
     }
+
     //ambil data dari req body
     const {
       idPasien,
