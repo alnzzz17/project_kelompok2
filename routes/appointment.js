@@ -28,12 +28,13 @@ router.put("/appointments/edit/:appId", editAppointDetail);
 router.get("/appointments/:appId", getAppointById);
 
 //GET APPOINTMENT BY PASIEN ID
-router.post("/appointments/:idPasien", getAppointByPasien);
+router.get("/appointments/:idPasien", getAppointByPasien);
 
 //GET APPOINTMENT BY DOKTER ID
-router.post("/appointments/:idDokter", getAppointByDokter);
+router.get("/appointments/:idDokter", getAppointByDokter);
 
 //GET APPOINTMENT BY POLI
-router.post("/appointments/poli", getAppointByPoli);
+router.get("/appointments/poli", getAppointByPoli);
+//localhost:5000/appointments/poli?poli=Umum
 
 module.exports = router;
