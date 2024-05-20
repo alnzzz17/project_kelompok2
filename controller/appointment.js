@@ -197,6 +197,28 @@ const getAppointByPasien = async (req, res, next) => {
 
 const getAppointByDokter = async (req, res, next) => {
   try {
+    //mengambil token
+    const header = req.headers;
+    const authorization = header.authorization;
+    let token;
+
+    if (authorization !== undefined && authorization.startsWith("Bearer ")) {
+      token = authorization.substring(7);
+    } else {
+      const error = new Error("You need to login");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    //extract payload untuk mendapatkan userId dan role
+    const decoded = jwt.verify(token, key);
+
+    if (decoded.role !== 'Resepsionis' && decoded.role !== 'Admin' && decoded.role !== 'Dokter') {
+      const error = new Error("You don't have access!");
+      error.statusCode = 403; //forbidden
+      throw error;
+    }
+    
     const { idDokter } = req.params;
     const appointments = await Appointment.findAll({
       where: { idDokter },
@@ -212,6 +234,28 @@ const getAppointByDokter = async (req, res, next) => {
 }
 
 const getAppointByPoli = async (req, res, next) => {
+  //mengambil token
+    const header = req.headers;
+    const authorization = header.authorization;
+    let token;
+
+    if (authorization !== undefined && authorization.startsWith("Bearer ")) {
+      token = authorization.substring(7);
+    } else {
+      const error = new Error("You need to login");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    //extract payload untuk mendapatkan userId dan role
+    const decoded = jwt.verify(token, key);
+
+    if (decoded.role !== 'Resepsionis' && decoded.role !== 'Admin' && decoded.role !== 'Dokter') {
+      const error = new Error("You don't have access!");
+      error.statusCode = 403; //forbidden
+      throw error;
+    }
+  
   try {
     const { poli } = req.query;
     const appointments = await Appointment.findAll({
