@@ -540,7 +540,7 @@ const getUserByToken = async (req, res, next) => {
   }
 };
 
-//EDIT USER ACCOUNT (DONE - TESTED)
+//EDIT USER ACCOUNT (DONE - TESTED) -> requires further testing
 const editUserAccount = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
