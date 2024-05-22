@@ -34,7 +34,6 @@ router.get("/appointments/pasien/:idPasien", getAppointByPasien);
 router.get("/appointments/dokter/:idDokter", getAppointByDokter);
 
 //GET APPOINTMENT BY POLI
-router.post("/appointments/poli", getAppointByPoli);
-//localhost:5000/appointments/poli?poli=Umum
+router.get("/appointments/:poli", getAppointByPoli);
 
 module.exports = router;
