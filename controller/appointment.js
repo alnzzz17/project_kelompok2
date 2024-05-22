@@ -413,7 +413,6 @@ const getAppointByDokter = async (req, res, next) => {
 
 const getAppointByPoli = async (req, res, next) => {
   try {
-
     //mengambil token
     const header = req.headers;
     const authorization = header.authorization;
