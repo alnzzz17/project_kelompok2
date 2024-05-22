@@ -34,8 +34,13 @@ const Appointment = sequelize.define('appointment',{
         key: 'idRsp'
       }
   },
-  dateTime:{
-      type: Sequelize.DATE,
+  date:{
+      type: Sequelize.DATEONLY,
+      allowNull: false,
+      defaultValue: Sequelize.NOW
+  },
+  time:{
+      type: Sequelize.TIME,
       allowNull: false,
       defaultValue: Sequelize.NOW
   },
