@@ -1,5 +1,6 @@
 const sequelize = require("../util/db_connect");
 const Sequelize = require('sequelize');
+const Poli = require("../model/Poli");
 
 const Pasien = sequelize.define('pasien',{
     idPasien:{
@@ -33,15 +34,16 @@ const Pasien = sequelize.define('pasien',{
     },
     emergencyContact:{
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
     },
     birthDate:{
         type: Sequelize.DATEONLY,
-        allowNull: false
+        allowNull: true
     },
     gender:{
         type: Sequelize.STRING,
-        allowNull: false
+        type: Sequelize.ENUM("Laki-Laki", "Perempuan"),
+        allowNull: true
     },
     personalAddress:{
         type: Sequelize.STRING,
@@ -93,7 +95,7 @@ const Dokter = sequelize.define('dokter',{
     },
     gender:{
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
     },
     personalAddress:{
         type: Sequelize.STRING,
@@ -101,15 +103,19 @@ const Dokter = sequelize.define('dokter',{
     },
     birthDate:{
         type: Sequelize.DATEONLY,
-        allowNull: false
+        allowNull: true
     },
     specialize:{
         type: Sequelize.STRING,
         allowNull: false
     },
-    poli:{
-        type: Sequelize.ENUM("Gigi","Umum"),
-        allowNull: false
+    idPoli:{
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: Poli,
+          key: 'id'
+        }
     },
     profileDesc:{
         type: Sequelize.TEXT,
@@ -121,7 +127,7 @@ const Dokter = sequelize.define('dokter',{
     },
     schedule:{
         type: Sequelize.JSON, //menyimpan jadwal sebagai JSON
-        allowNull: false
+        allowNull: true
     }
 });
   
