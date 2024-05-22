@@ -1,6 +1,7 @@
 const sequelize = require("../util/db_connect");
 const Sequelize = require('sequelize');
 const { Resepsionis, Dokter, Pasien } = require("../model/User");
+const Poli = require("../model/Poli");
 
 const Appointment = sequelize.define('appointment',{
   idAppointment:{
@@ -38,9 +39,13 @@ const Appointment = sequelize.define('appointment',{
       allowNull: false,
       defaultValue: Sequelize.NOW
   },
-  poli:{
-      type: Sequelize.ENUM("Gigi","Umum"),
-      allowNull: true
+  idPoli:{
+    type: Sequelize.INTEGER,
+    allowNull: false,
+    references: {
+      model: Poli,
+      key: 'id'
+    }
   },
   queueNumber:{
       type: Sequelize.STRING,
@@ -75,7 +80,7 @@ const Appointment = sequelize.define('appointment',{
   },
   bill:{
       type: Sequelize.INTEGER,
-      allowNull: true,
+      allowNull: false,
       defaultValue: 0
   }
 })
