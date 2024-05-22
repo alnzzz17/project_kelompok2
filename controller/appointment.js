@@ -5,6 +5,7 @@ const {
   Pasien
 } = require("../model/User");
 const Appointment = require("../model/Appointment");
+const Poli = require("../model/Poli");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const key = process.env.TOKEN_SECRET_KEY;
@@ -17,6 +18,10 @@ const getAllAppoint = async (req, res, next) => {
       order: [
         ["createdAt", "ASC"]
       ],
+      include: {
+        model: Poli,
+        attributes: ["nama"],
+      }
     });
     res.status(200).json({
       status: "Success",
@@ -68,13 +73,25 @@ const addAppoint = async (req, res, next) => {
       assuranceType
     } = req.body;
 
+    const app_poli = await Poli.findOne({
+      where: {
+        nama: poli,
+      }
+    });
+
+    if (app_poli == undefined) {
+      const error = new Error(`Poli ${poli} is not existed!`);
+      error.statusCode = 400;
+      throw error;
+    }
+
     //insert data ke tabel appointment
     const newAppointment = await Appointment.create({
       idPasien,
       idDokter,
       idResepsionis,
       dateTime,
-      poli,
+      idPoli: app_poli.id,
       queueNumber,
       assuranceType
     });
@@ -126,7 +143,7 @@ const deleteAppoint = async (req, res, next) => {
     const deletedAppointment = await Appointment.destroy({
       where: {
         idAppointment: appId
-      },
+      }
     });
     if (!deletedAppointment) {
       throw new Error("Appointment not found");
@@ -186,27 +203,44 @@ const editAppointDetail = async (req, res, next) => {
 
     //ambil total dan discount dari body
     const {
+      idPasien,
+      idDokter,
+      idResepsionis,
+      dateTime,
+      poli,
+      queueNumber,
+      keluhan,
+      diagnosis,
+      assuranceType,
+      appStatus,
       total,
       discount
     } = req.body;
+
+    //ambil dari tabel poli
+    const app_poli = await Poli.findOne({
+      where: {
+        nama: poli,
+      }
+    });
 
     //hitung bill
     const bill = total - discount;
 
     //update data
     const updateApp = await Appointment.update({
-      idPasien: req.body.idPasien,
-      idDokter: req.body.idDokter,
-      idResepsionis: req.body.idResepsionis,
-      dateTime: req.body.dateTime,
-      poli: req.body.poli,
-      queueNumber: req.body.queueNumber,
-      keluhan: req.body.keluhan,
-      diagnosis: req.body.diagnosis,
-      assuranceType: req.body.assuranceType,
-      appStatus: req.body.appStatus,
-      total: total,
-      discount: discount,
+      idPasien,
+      idDokter,
+      idResepsionis,
+      dateTime,
+      poli: app_poli.id,
+      queueNumber,
+      keluhan,
+      diagnosis,
+      assuranceType,
+      appStatus,
+      total,
+      discount,
       bill: bill
     }, {
       where: {
@@ -250,7 +284,12 @@ const getAppointById = async (req, res, next) => {
       appId
     } = req.params;
 
-    const appointment = await Appointment.findByPk(appId);
+    const appointment = await Appointment.findByPk(appId, {
+      include: {
+        model: Poli,
+        attributes: ["nama"],
+      }
+    });
     if (!appointment) {
       const error = new Error(`Appointment with id ${appId} does not exist`);
       error.statusCode = 400;
@@ -300,6 +339,10 @@ const getAppointByPasien = async (req, res, next) => {
     }
     
     const appointments = await Appointment.findAll({
+      include: {
+        model: Poli,
+        attributes: ["nama"],
+      },
       where: {
         idPasien
       }
@@ -317,12 +360,40 @@ const getAppointByPasien = async (req, res, next) => {
   }
 }
 
+//GET APPOINTMENT BY DOKTER ID (DONE - TESTED)
 const getAppointByDokter = async (req, res, next) => {
   try {
     const {
       idDokter
     } = req.params;
+
+    //mengambil token
+    const header = req.headers;
+    const authorization = header.authorization;
+    let token;
+
+    if (authorization !== undefined && authorization.startsWith("Bearer ")) {
+      token = authorization.substring(7);
+    } else {
+      const error = new Error("You need to login");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    //extract payload untuk mendapatkan userId dan role
+    const decoded = jwt.verify(token, key);
+
+    if (decoded.role !== "Admin" && decoded.role !== "Resepsionis" && idDokter !== decoded.userId) {
+      const error = new Error("You don't have access!");
+      error.statusCode = 403; //forbidden
+      throw error;
+    }
+
     const appointments = await Appointment.findAll({
+      include: {
+        model: Poli,
+        attributes: ["nama"],
+      },
       where: {
         idDokter
       },
@@ -333,27 +404,60 @@ const getAppointByDokter = async (req, res, next) => {
       appointments,
     });
   } catch (error) {
-    next(error);
+    res.status(error.statusCode || 500).json({
+      status: "Error",
+      message: error.message,
+    });
   }
 }
 
 const getAppointByPoli = async (req, res, next) => {
   try {
-    const {
-      poli
-    } = req.query;
+
+    //mengambil token
+    const header = req.headers;
+    const authorization = header.authorization;
+    let token;
+
+    if (authorization !== undefined && authorization.startsWith("Bearer ")) {
+      token = authorization.substring(7);
+    } else {
+      const error = new Error("You need to login");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    //extract payload untuk mendapatkan userId dan role
+    const decoded = jwt.verify(token, key);
+
+    if (decoded.role !== 'Resepsionis' && decoded.role !== 'Admin') {
+      const error = new Error("You don't have access!");
+      error.statusCode = 403; //forbidden
+      throw error;
+    }
+
+    const { idPoli } = req.params;
+    
     const appointments = await Appointment.findAll({
-      where: {
-        poli
+      include: {
+        model: Poli,
+        attributes: ["nama"],
       },
+      where: {
+        idPoli
+      }
     });
+
     res.status(200).json({
       status: "Success",
       message: "Appointments retrieved successfully",
       appointments,
     });
   } catch (error) {
-    next(error);
+    res.status(error.statusCode || 500).json({
+      status: "Error",
+      message: error.message,
+    });
   }
 }
 
