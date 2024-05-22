@@ -602,7 +602,7 @@ const getUserByToken = async (req, res, next) => {
   }
 };
 
-//EDIT USER ACCOUNT (DONE - TESTED) -> further testing needed
+//EDIT USER ACCOUNT (DONE - TESTED) -> FILE UPLOAD OK
 const editUserAccount = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
