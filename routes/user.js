@@ -32,13 +32,13 @@ router.post("/users/register/dokter", postDokter);
 //USER LOGIN
 router.post("/users/login", loginHandler);
 
-//DELETE /users/:userId
+//DELETE USER ACCOUNT
 router.delete("/users/:userId", deleteUser);
 
 //GET USER DATA BY TOKEN
 router.get("/users/fetch-by-token", getUserByToken);
 
-// PUT /user/edit-account
-router.put("/users/edit-account", upload.single("image"), editUserAccount);
+//EDIT ACCOUNT DETAILS
+router.put("/users/edit-account", upload.single("profilePict"), editUserAccount);
 
 module.exports = router;
