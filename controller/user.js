@@ -1,5 +1,10 @@
 require("dotenv").config();
-const { Resepsionis, Dokter, Pasien } = require("../model/User");
+const {
+  Resepsionis,
+  Dokter,
+  Pasien
+} = require("../model/User");
+const Poli = require("../model/Poli");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const key = process.env.TOKEN_SECRET_KEY;
@@ -8,12 +13,15 @@ const fs = require("fs");
 
 const getUserById = async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const {
+      userId
+    } = req.params;
     let user;
+    let role;
 
-    const rolePrefix = userId.substring(0, 2);
+    const roleId = userId.substring(0, 2);
 
-    switch (rolePrefix) {
+    switch (roleId) {
       case '01':
         user = await Resepsionis.findOne({
           where: {
@@ -21,12 +29,10 @@ const getUserById = async (req, res, next) => {
           },
           attributes: [
             "idRsp",
-            "username",
+            "profilePict",
             "fullName",
             "email",
-            "phoneNumber",
-            "profilePict",
-            "role"
+            "phoneNumber"
           ]
         });
         break;
@@ -38,14 +44,22 @@ const getUserById = async (req, res, next) => {
           attributes: [
             "idDokter",
             "sipNumber",
-            "fullName",
             "profilePict",
+            "fullName",
+            "email",
+            "phoneNumber",
+            "gender",
+            "personalAddress",
+            "birthDate",
             "specialize",
+            "poli",
             "profileDesc",
-            "schedule",
-            "role"
+            "schedule"
           ],
-          include: [{ model: Jadwal }]
+          include: {
+            model: Poli,
+            attributes: ["nama"]
+          }
         });
         break;
       case '03':
@@ -55,11 +69,17 @@ const getUserById = async (req, res, next) => {
           },
           attributes: [
             "idPasien",
+            "idNumber",
+            "profilePict",
             "fullName",
             "email",
             "phoneNumber",
-            "profilePict",
-            "role"
+            "emergencyContact",
+            "birthDate",
+            "gender",
+            "personalAddress",
+            "historyPenyakit",
+            "allergies"
           ]
         });
         break;
@@ -74,14 +94,7 @@ const getUserById = async (req, res, next) => {
     res.status(200).json({
       status: "Success",
       message: "Successfully retrieve user data",
-      user: {
-        id: user.idPasien || user.idDokter || user.idRsp,
-        fullName: user.fullName,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        profilePicture: user.profilePict,
-        role: user.role
-      },
+      user
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({
@@ -93,23 +106,24 @@ const getUserById = async (req, res, next) => {
 
 const getAllUserByRole = async (req, res, next) => {
   try {
-    const { role } = req.params;
+    const {
+      role
+    } = req.params;
     let users;
 
     switch (role) {
-      case '01':
+      case 'Resepsionis':
         users = await Resepsionis.findAll({
           attributes: [
             "idRsp",
             "fullName",
             "email",
             "phoneNumber",
-            "profilePict",
-            "role"
+            "profilePict"
           ]
         });
         break;
-      case '02':
+      case 'Dokter':
         users = await Dokter.findAll({
           attributes: [
             "idDokter",
@@ -118,20 +132,22 @@ const getAllUserByRole = async (req, res, next) => {
             "profilePict",
             "specialize",
             "profileDesc",
-            "schedule",
-            "role"
-          ]
+            "schedule"
+          ],
+          include: {
+            model: Poli,
+            attributes: ["nama"],
+          }
         });
         break;
-      case '03':
+      case 'Pasien':
         users = await Pasien.findAll({
           attributes: [
             "idPasien",
             "fullName",
             "email",
             "phoneNumber",
-            "profilePict",
-            "role"
+            "profilePict"
           ]
         });
         break;
@@ -152,45 +168,49 @@ const getAllUserByRole = async (req, res, next) => {
   }
 };
 
-const postTryRsp = async (req, res, next) => {
+//post resepsionis (DONE - TESTED)
+const postRsp = async (req, res, next) => {
   try {
-    const { idRsp, userName, fullName, password, email, phoneNumber } = req.body;
+    //ambil data dari req body
+    const {
+      idRsp,
+      fullName,
+      password,
+      email,
+      phoneNumber
+    } = req.body;
 
-    // Hash the password
+    //hash password
     const hashedPassword = await bcrypt.hash(password, 5);
 
-    // Insert data into the User table
+    //insert data ke tabel resepsionis
     const currentUser = await Resepsionis.create({
       idRsp,
-      userName,
       fullName,
       password: hashedPassword,
       email,
-      phoneNumber,
-      role: "Resepsionis"
+      phoneNumber
     });
 
-    // Generate a JWT token
-    const token = jwt.sign(
-      {
+    //generate jwt token
+    const token = jwt.sign({
         userId: currentUser.id,
         role: currentUser.role,
       },
-      key, // Replace with your JWT secret key
-      {
+      key, {
         algorithm: "HS256",
         expiresIn: "1h",
       }
     );
 
-    // Send response
+    //kirim response
     res.status(201).json({
       status: "success",
       message: "Register Successful!",
-      token,
+      token
     });
   } catch (error) {
-    // If status code is not defined, set status = 500
+    //jika status code undefined, set status = 500
     res.status(error.statusCode || 500).json({
       status: "Error",
       message: error.message,
@@ -198,85 +218,120 @@ const postTryRsp = async (req, res, next) => {
   }
 };
 
-
-const postUser = async (req, res, next) => {
+//post pasien (DONE - TESTED)
+const postPasien = async (req, res, next) => {
   try {
-    const { role, idPasien, idDokter, idRsp, userName, fullName, email, phoneNumber,
-            password, idNumber, birthDate, gender, personalAddress,
-            historyPenyakit, allergies, sipNumber, specialize, poli,
-            profileDesc } = req.body;
+    //ambil data dari req body
+    const {
+      idPasien,
+      idNumber,
+      fullName,
+      password,
+      email,
+      phoneNumber
+    } = req.body;
 
+    //hash password
     const hashedPassword = await bcrypt.hash(password, 5);
 
-    let user;
+    //insert data ke tabel pasien
+    const currentUser = await Pasien.create({
+      idPasien,
+      idNumber,
+      fullName,
+      password: hashedPassword,
+      email,
+      phoneNumber
+    });
 
-    switch(role) {
-      case 'Pasien':
-        user = await Pasien.create({
-          idPasien,
-          idNumber,
-          fullName,
-          password: hashedPassword,
-          email,
-          phoneNumber,
-          birthDate,
-          gender,
-          personalAddress,
-          historyPenyakit,
-          allergies
-        });
-        break;
-      case 'Dokter':
-        user = await Dokter.create({
-          idDokter,
-          sipNumber,
-          fullName,
-          password: hashedPassword,
-          email,
-          phoneNumber,
-          gender,
-          personalAddress,
-          birthDate,
-          specialize,
-          poli,
-          profileDesc
-        });
-        break;
-      case 'Resepsionis':
-        user = await Resepsionis.create({
-          idRsp,
-          userName,
-          fullName,
-          password: hashedPassword,
-          email,
-          phoneNumber,
-          role: "Resepsionis"
-        });
-        break;
-      default:
-        const error = new Error(`Role Invalid!`);
-        error.statusCode = 400;
-        throw error;
-    }
-
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        role: role,
+    //generate jwt token
+    const token = jwt.sign({
+        userId: currentUser.id,
+        role: currentUser.role,
       },
-      key,
-      {
+      key, {
         algorithm: "HS256",
         expiresIn: "1h",
       }
     );
 
+    //kirim response
     res.status(201).json({
       status: "success",
       message: "Register Successful!",
       token,
     });
   } catch (error) {
+    //jika status code undefined, set status = 500
+    res.status(error.statusCode || 500).json({
+      status: "Error",
+      message: error.message,
+    });
+  }
+};
+
+//post dokter (DONE - TESTED)
+const postDokter = async (req, res, next) => {
+  try {
+    //ambil data dari req body
+    const {
+      idDokter,
+      sipNumber,
+      fullName,
+      password,
+      email,
+      phoneNumber,
+      specialize,
+      poli
+    } = req.body;
+
+    //hash password
+    const hashedPassword = await bcrypt.hash(password, 5);
+
+    const dokter_poli = await Poli.findOne({
+      where: {
+        nama: poli,
+      },
+    });
+
+    //SELECT * FROM DIVISION WHERE name = division
+    if (dokter_poli == undefined) {
+      const error = new Error(`Poli ${poli} is not existed!`);
+      error.statusCode = 400;
+      throw error;
+    }
+
+    //insert data ke tabel pasien
+    const currentUser = await Dokter.create({
+      idDokter,
+      sipNumber,
+      fullName,
+      password: hashedPassword,
+      email,
+      phoneNumber,
+      specialize,
+      idPoli: dokter_poli.id
+    });
+
+    //generate jwt token
+    const token = jwt.sign({
+        userId: currentUser.id,
+        role: currentUser.role,
+      },
+      key, {
+        algorithm: "HS256",
+        expiresIn: "1h",
+      }
+    );
+
+    //kirim response
+    res.status(201).json({
+      status: "success",
+      message: "Register Successful!",
+      token,
+    });
+  } catch (error) {
+    //jika status code undefined, set status = 500
     res.status(error.statusCode || 500).json({
       status: "Error",
       message: error.message,
@@ -374,7 +429,7 @@ const loginHandler = async (req, res, next) => {
   }
 };
 
-//DELETE USER ACCOUNT (DONE - TESTED)
+// DELETE USER ACCOUNT (DONE - TESTED)
 const deleteUser = async (req, res, next) => {
   //hanya admin yang bisa menghapus
   try {
@@ -459,11 +514,11 @@ const getUserByToken = async (req, res, next) => {
     const authorization = req.headers.authorization;
     let token;
 
-    if (authorization !== undefined && authorization.startsWith("Bearer ")) {
+    if (authorization && authorization.startsWith("Bearer ")) {
       token = authorization.substring(7);
     } else {
       const error = new Error("You need to login");
-      error.statusCode = 400;
+      error.statusCode = 401; // 401 unauthorized
       throw error;
     }
 
@@ -474,46 +529,53 @@ const getUserByToken = async (req, res, next) => {
       user = await Pasien.findOne({
         attributes: [
           "idPasien",
-          "fullName",
           "idNumber",
+          "profilePict",
+          "fullName",
+          "email",
+          "phoneNumber",
+          "emergencyContact",
           "birthDate",
           "gender",
-          "profilePict",
           "personalAddress",
           "historyPenyakit",
-          "allergies",
-          "role"
+          "allergies"
         ],
         where: {
           idPasien: decoded.userId,
-        },
+        }
       });
     } else if (decoded.role === 'Dokter') {
       user = await Dokter.findOne({
         attributes: [
-            "idDokter",
-            "sipNumber",
-            "fullName",
-            "profilePict",
-            "specialize",
-            "profileDesc",
-            "idJadwal",
-            "role"
+          "idDokter",
+          "sipNumber",
+          "profilePict",
+          "fullName",
+          "email",
+          "phoneNumber",
+          "gender",
+          "personalAddress",
+          "specialize",
+          "profileDesc",
+          "schedule"
         ],
         where: {
           idDokter: decoded.userId,
-        },
+        }
       });
     } else if (decoded.role === 'Resepsionis') {
       user = await Resepsionis.findOne({
         attributes: [
           "idRsp",
+          "profilePict",
           "fullName",
-          "role"
+          "email",
+          "phoneNumber"
         ],
         where: {
           idRsp: decoded.userId,
-        },
+        }
       });
     } else {
       const error = new Error("Invalid role");
@@ -529,18 +591,18 @@ const getUserByToken = async (req, res, next) => {
 
     res.status(200).json({
       status: "Success",
-      message: "Successfully retrieve data",
-      user,
+      message: "Successfully retrieved data",
+      user
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({
       status: "Error",
-      message: error.message,
+      message: error.message
     });
   }
 };
 
-//EDIT USER ACCOUNT (DONE - TESTED) -> requires further testing
+//EDIT USER ACCOUNT (DONE - TESTED) -> further testing needed
 const editUserAccount = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
@@ -569,27 +631,42 @@ const editUserAccount = async (req, res, next) => {
       const file = req.file;
       if (file) {
         const uploadOption = {
-          folder: "Profile_Member/",
-          public_id: `user_${currentUser.id}`,
-          overwrite: true,
+          folder: "Profile_User/Pasien/",
+          public_id: `pasien_${currentUser.idPasien}`,
+          overwrite: true
         };
         const uploadFile = await cloudinary.uploader.upload(file.path, uploadOption);
         imageUrl = uploadFile.secure_url;
         fs.unlinkSync(file.path);
       }
+
+      const {
+        idNumber,
+        fullName,
+        password,
+        email,
+        phoneNumber,
+        emergencyContact,
+        birthDate,
+        gender,
+        personalAddress,
+        historyPenyakit,
+        allergies
+      } = req.body;
+
       await currentUser.update({
-        idNumber: req.body.idNumber,
+        idNumber,
         profilePict: imageUrl || currentUser.profilePict,
-        fullName: req.body.fullName,
-        email: req.body.email,
-        phoneNumber: req.body.phoneNumber,
-        emergencyContact: req.body.emergencyContact,
-        birthDate: req.body.birthDate,
-        gender: req.body.gender,
-        personalAddress: req.body.personalAddress,
-        historyPenyakit: req.body.historyPenyakit,
-        allergies: req.body.allergies,
-        password: req.body.password
+        fullName,
+        password,
+        email,
+        phoneNumber,
+        emergencyContact,
+        birthDate,
+        gender,
+        personalAddress,
+        historyPenyakit,
+        allergies
       });
     } else if (decoded.role === 'Dokter') {
       currentUser = await Dokter.findByPk(decoded.userId);
@@ -601,24 +678,48 @@ const editUserAccount = async (req, res, next) => {
       const file = req.file;
       if (file) {
         const uploadOption = {
-          folder: "Profile_Member/",
-          public_id: `user_${currentUser.id}`,
+          folder: "Profile_User/Dokter/",
+          public_id: `dokter_${currentUser.idDokter}`,
           overwrite: true,
         };
         const uploadFile = await cloudinary.uploader.upload(file.path, uploadOption);
         imageUrl = uploadFile.secure_url;
         fs.unlinkSync(file.path);
       }
+
+      const {
+        sipNumber,
+        fullName,
+        password,
+        email,
+        phoneNumber,
+        gender,
+        personalAddress,
+        birthDate,
+        specialize,
+        poli,
+        schedule
+      } = req.body;
+
+      const app_poli = await Poli.findOne({
+        where: {
+          nama: poli,
+        }
+      });
+
       await currentUser.update({
-        sipNumber: req.body.sipNumber,
+        sipNumber,
         profilePict: imageUrl || currentUser.profilePict,
-        fullName: req.body.fullName,
-        email: req.body.email,
-        phoneNumber: req.body.phoneNumber,
-        gender: req.body.gender,
-        personalAddress: req.body.personalAddress,
-        password: req.body.password,
-        schedule: req.body.schedule
+        fullName,
+        password,
+        email,
+        phoneNumber,
+        gender,
+        personalAddress,
+        birthDate,
+        specialize,
+        idPoli: app_poli.id,
+        schedule
       });
     } else if (decoded.role === 'Resepsionis') {
       currentUser = await Resepsionis.findByPk(decoded.userId);
@@ -630,20 +731,28 @@ const editUserAccount = async (req, res, next) => {
       const file = req.file;
       if (file) {
         const uploadOption = {
-          folder: "Profile_Member/",
-          public_id: `user_${currentUser.id}`,
+          folder: "Profile_User/Resepsionis/",
+          public_id: `rsp_${currentUser.idResepsionis}`,
           overwrite: true,
         };
         const uploadFile = await cloudinary.uploader.upload(file.path, uploadOption);
         imageUrl = uploadFile.secure_url;
         fs.unlinkSync(file.path);
       }
+
+      const {
+        password,
+        fullName,
+        email,
+        phoneNumber
+      } = req.body;
+
       await currentUser.update({
+        password,
         profilePict: imageUrl || currentUser.profilePict,
-        fullName: req.body.fullName,
-        email: req.body.email,
-        phoneNumber: req.body.phoneNumber,
-        password: req.body.password
+        fullName,
+        email,
+        phoneNumber
       });
     } else {
       const error = new Error("Invalid role");
