@@ -15,19 +15,18 @@
 ```
 *nantinya default role Resepsionis, diganti manual di db
 
-#### postUser : Dokter
+#### post rsp
 ```
 {
-    idDokter: '0201',
-    sipNumber: '123/abcd/345/2016',
-    fullName: 'Dr. Amin Hidayat',
-    password: 'doktoraminpass',
-    email: 'amin@gmail.com,
-    phoneNumber: '086476243687',
-    specialize: 'Umum',
-    poli: 'Umum'
+  "idRsp": "01X12345",
+  "fullName": "John Doe",
+  "password": "securepassword",
+  "email": "john.doe@example.com",
+  "phoneNumber": "1234567890"
 }
+
 ```
+
         
 #### addJadwal
 ```
@@ -43,11 +42,55 @@
 
 #### postResepsionis
 #### postPasien
+{
+  "idPasien": "03X12345",
+  "idNumber": "987654321",
+  "fullName": "Jane Doe",
+  "password": "securepassword",
+  "email": "jane.doe@example.com",
+  "phoneNumber": "0987654321"
+}
+
+**#### PostDokter**
+{
+  "idDokter": "02X12345",
+  "sipNumber": "1234567890",
+  "fullName": "Dr. Smith",
+  "password": "securepassword",
+  "email": "dr.smith@example.com",
+  "phoneNumber": "1231231234",
+  "specialize": "Cardiology",
+  "poli": "Cardiology Department"
+}
+
+
 #### getUserById
 #### getAllUserByRole
 #### login
+{
+  "id": "01X12345",
+  "password": "securepassword"
+}
+
+
 #### deleteUser
+
+
 #### editUserAccount
+{
+  "idNumber": "987654321",
+  "fullName": "Jane Doe",
+  "password": "newsecurepassword",
+  "email": "new.jane.doe@example.com",
+  "phoneNumber": "0987654321",
+  "emergencyContact": "John Doe",
+  "birthDate": "1990-01-01",
+  "gender": "Female",
+  "personalAddress": "123 Main St",
+  "historyPenyakit": "None",
+  "allergies": "None"
+}
+
 #### editJadwal
 #### deleteJadwal
 #### getAllJadwal
