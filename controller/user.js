@@ -11,13 +11,35 @@ const key = process.env.TOKEN_SECRET_KEY;
 const cloudinary = require("../util/cloudinary_config");
 const fs = require("fs");
 
+//GET USER BY ID (DONE - TESTED)
 const getUserById = async (req, res, next) => {
   try {
+    //mengambil token
+    const header = req.headers;
+    const authorization = header.authorization;
+    let token;
+
+    if (authorization !== undefined && authorization.startsWith("Bearer ")) {
+      token = authorization.substring(7);
+    } else {
+      const error = new Error("You need to login");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    //extract payload untuk mendapatkan userId dan role
+    const decoded = jwt.verify(token, key);
+
+    if (decoded.role !== "ADMIN" && decoded.role !== "RESEPSIONIS") {
+      const error = new Error("You don't have access!");
+      error.statusCode = 403; //forbidden
+      throw error;
+    }
+
     const {
       userId
     } = req.params;
     let user;
-    let role;
 
     const roleId = userId.substring(0, 2);
 
@@ -104,6 +126,7 @@ const getUserById = async (req, res, next) => {
   }
 };
 
+//GET USER BY ROLE ()
 const getAllUserByRole = async (req, res, next) => {
   try {
     const {
@@ -158,7 +181,7 @@ const getAllUserByRole = async (req, res, next) => {
     res.status(200).json({
       status: "Success",
       message: "Successfully retrieve user data",
-      users,
+      users
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({
@@ -449,7 +472,7 @@ const deleteUser = async (req, res, next) => {
     //extract payload untuk mendapatkan userId dan role
     const decoded = jwt.verify(token, key);
 
-    if (decoded.role !== "Admin") {
+    if (decoded.role !== "ADMIN") {
       const error = new Error("You don't have access!");
       error.statusCode = 403; //forbidden
       throw error;
@@ -511,90 +534,72 @@ const deleteUser = async (req, res, next) => {
 
 const getUserByToken = async (req, res, next) => {
   try {
+    console.log("Starting getUserByToken handler");
+
     const authorization = req.headers.authorization;
     let token;
 
     if (authorization && authorization.startsWith("Bearer ")) {
       token = authorization.substring(7);
+      console.log("Token extracted: ", token);
     } else {
-      const error = new Error("You need to login");
-      error.statusCode = 401; // 401 unauthorized
+      const error = new Error("You need to log in");
+      error.statusCode = 403;
       throw error;
     }
 
     const decoded = jwt.verify(token, key);
+    console.log("Token decoded: ", decoded);
 
     let user;
-    if (decoded.role === 'Pasien') {
-      user = await Pasien.findOne({
-        attributes: [
-          "idPasien",
-          "idNumber",
-          "profilePict",
-          "fullName",
-          "email",
-          "phoneNumber",
-          "emergencyContact",
-          "birthDate",
-          "gender",
-          "personalAddress",
-          "historyPenyakit",
-          "allergies"
-        ],
-        where: {
-          idPasien: decoded.userId,
-        }
-      });
-    } else if (decoded.role === 'Dokter') {
-      user = await Dokter.findOne({
-        attributes: [
-          "idDokter",
-          "sipNumber",
-          "profilePict",
-          "fullName",
-          "email",
-          "phoneNumber",
-          "gender",
-          "personalAddress",
-          "specialize",
-          "profileDesc",
-          "schedule"
-        ],
-        where: {
-          idDokter: decoded.userId,
-        }
-      });
-    } else if (decoded.role === 'Resepsionis') {
-      user = await Resepsionis.findOne({
-        attributes: [
-          "idRsp",
-          "profilePict",
-          "fullName",
-          "email",
-          "phoneNumber"
-        ],
-        where: {
-          idRsp: decoded.userId,
-        }
-      });
-    } else {
-      const error = new Error("Invalid role");
-      error.statusCode = 400;
-      throw error;
+    const roleId = decoded.userId.substring(0, 2);
+    console.log("Role ID extracted: ", roleId);
+
+    switch (roleId) {
+      case '01':
+        user = await Resepsionis.findOne({
+          where: { idRsp: decoded.userId },
+          attributes: ["idRsp", "profilePict", "fullName", "email", "phoneNumber"]
+        });
+        break;
+      case '02':
+        user = await Dokter.findOne({
+          where: { idDokter: decoded.userId },
+          attributes: ["idDokter", "sipNumber", "profilePict", "fullName", "email", "phoneNumber", "gender", "personalAddress", "specialize", "poli", "profileDesc", "schedule"],
+          include: {
+            model: Poli,
+            attributes: ["nama"]
+          }
+        });
+        break;
+      case '03':
+        user = await Pasien.findOne({
+          where: { idPasien: decoded.userId },
+          attributes: ["idPasien", "idNumber", "profilePict", "fullName", "email", "phoneNumber", "emergencyContact", "birthDate", "gender", "personalAddress", "historyPenyakit", "allergies"]
+        });
+        break;
+      default:
+        const error = new Error("User Invalid!");
+        error.statusCode = 400;
+        throw error;
     }
 
     if (!user) {
-      const error = new Error("User not found");
+      const error = new Error(`User with id ${decoded.userId} does not exist`);
       error.statusCode = 404;
       throw error;
     }
 
+    console.log("User found: ", user);
+
     res.status(200).json({
       status: "Success",
-      message: "Successfully retrieved data",
+      message: "Successfully retrieved user data",
       user
     });
+
   } catch (error) {
+    console.error("Error in getUserByToken: ", error);
     res.status(error.statusCode || 500).json({
       status: "Error",
       message: error.message
@@ -602,7 +607,7 @@ const getUserByToken = async (req, res, next) => {
   }
 };
 
-//EDIT USER ACCOUNT (DONE - TESTED) -> FILE UPLOAD OK
+//EDIT USER ACCOUNT (DONE - TESTED) -> further testing needed
 const editUserAccount = async (req, res, next) => {
   try {
     const authorization = req.headers.authorization;
@@ -621,7 +626,7 @@ const editUserAccount = async (req, res, next) => {
     let currentUser;
     let imageUrl;
 
-    if (decoded.role === 'Pasien') {
+    if (decoded.role === 'PASIEN') {
       currentUser = await Pasien.findByPk(decoded.userId);
       if (!currentUser) {
         const error = new Error(`User with id ${decoded.userId} does not exist`);
@@ -668,7 +673,7 @@ const editUserAccount = async (req, res, next) => {
         historyPenyakit,
         allergies
       });
-    } else if (decoded.role === 'Dokter') {
+    } else if (decoded.role === 'DOKTER') {
       currentUser = await Dokter.findByPk(decoded.userId);
       if (!currentUser) {
         const error = new Error(`User with id ${decoded.userId} does not exist`);
@@ -721,7 +726,7 @@ const editUserAccount = async (req, res, next) => {
         idPoli: app_poli.id,
         schedule
       });
-    } else if (decoded.role === 'Resepsionis') {
+    } else if (decoded.role === 'RESEPSIONIS') {
       currentUser = await Resepsionis.findByPk(decoded.userId);
       if (!currentUser) {
         const error = new Error(`User with id ${decoded.userId} does not exist`);
